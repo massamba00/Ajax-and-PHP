@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>AjaxCategorySelect</title>
+        <style>
+            #subcategory-select {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="form">
+            <p>Which category are you interested in ?</p>
+            <label for="category-select"></label>
+            <select id="category-select">
+                <option disabled selected>Please select</option>
+                <option value="1">Furniture</option>
+                <option value="2">Lighting</option>
+                <option value="3">Accessories</option>
+            </select>
+
+            <label for="subcategory-select"></label>
+            <select id="subcategory-select">
+            </select>
+        </div>
+
+        <script>
+            updateSubcategories = () => {
+                let cat_select = document.getElementById('category-select');
+                let sub_cat_select = document.getElementById('subcategory-select');
+
+                let cat_id = cat_select.options[cat_select.selectedIndex].value;
+                let url = 'subcategories.php?category_id=' + cat_id;
+
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        sub_cat_select.innerHTML = xhr.responseText;
+                        sub_cat_select.style.display = 'inline';
+                    }
+                };
+                xhr.send();
+            };
+            let cat_select = document.getElementById('category-select');
+            cat_select.addEventListener('change', updateSubcategories);
+        </script>
+    </body>
+</html>
