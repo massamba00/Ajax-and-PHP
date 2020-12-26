@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>AjaxJaon</title>
+    </head>
+    <body>
+        <div id="main">
+            This is the original message when the page first loads.
+        </div>
+
+        <button id="ajax-button" type="button">
+            Update content with Ajax
+        </button>
+
+        <script>
+            let replaceText = () => {
+                let target = document.getElementById('main');
+
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET', 'new-content.php', true);
+
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        let json = JSON.parse(xhr.responseText);
+                        target.innerHTML = json.long;
+                    }
+                };
+                xhr.send();
+            };
+
+            let button = document.getElementById('ajax-button');
+            button.addEventListener('click', replaceText);
+        </script>
+    </body>
+</html>
