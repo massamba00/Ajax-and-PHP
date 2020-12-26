@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Infinite Scroll</title>
+</head>
+<style>
+    #blog-posts {
+        width: 700px;
+    }
+
+    .blog-post {
+        border: 1px solid black;
+        padding: 6px 10px;
+        margin: 10px 10px 20px 10px;
+    }
+
+    #spinner {
+        display: none;
+        margin: 10px 10px 20px 10px;
+    }
+
+    #load-more-container {
+        margin: 10px 10px 20px 10px;
+    }
+</style>
+<body>
+    <div id="blog-posts"></div>
+    <div id="load-more-container">
+        <button id="load-more" data-page="0">Load more</button>
+    </div>
+
+    <div id="spinner">
+        <img src="Spinner-1s-200px.gif" width="50" height="50" alt="spinner">
+    </div>
+<script>
+    let container = document.getElementById('blog-posts');
+    let loadMoreButton = document.getElementById('load-more');
+    let spinner = document.getElementById('spinner');
+    let requestInProgress = false;
+
+    showSpinner = () => {
+        spinner.style.display = 'block';
+    };
+    hideSpinner = () => {
+        spinner.style.display = 'none';
+    };
+    showLoadMore = () => {
+        loadMoreButton.style.display = 'inline';
+    };
+    hideLoadMore = () => {
+        loadMoreButton.style.display = 'none';
+    };
+    appendToDiv = (div, new_html) => {
+        // Creating new div element to help the browser see the new html content
+        let temp = document.createElement('div');
+        temp.innerHTML = new_html;
+
+        // retrieving className to be able to get the collection of blogPosts with the getElementsByClassName function
+        let class_name = temp.firstElementChild.className;
+        let items = temp.getElementsByClassName(class_name);
+
+
+        // Looping over the items to append child into the container div we want to put the content
+        let itemsLength = items.length;
+        for (let i = 0; i < itemsLength; i++) {
+            div.appendChild(items[0]);
+        }
+    };
+    setCurrentPage = page => {
+        loadMoreButton.setAttribute('data-page', page);
+    };
+    infiniteScroll = () => {
+        let contentHeight = container.offsetHeight;
+        let currentYPosition = window.innerHeight + window.pageYOffset;
+        if (currentYPosition >= contentHeight) {
+            loadMore();
+        }
+    };
+
+    loadMore = () => {
+        if (requestInProgress) {return;}
+        requestInProgress = true;
+
+        showSpinner();
+        hideLoadMore();
+
+        let page = parseInt(loadMoreButton.getAttribute('data-page'));
+        let nextPage = page + 1;
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'blogPosts.php?page=' + nextPage, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                hideSpinner();
+                setCurrentPage(nextPage);
+                appendToDiv(container, xhr.responseText);
+                showLoadMore();
+                requestInProgress = false;
+            }
+        };
+        xhr.send();
+    };
+
+    loadMoreButton.addEventListener('click', event => {
+        event.preventDefault();
+        loadMore();
+    });
+
+    window.onscroll = () => {
+        infiniteScroll();
+    };
+
+    loadMore();
+</script>
+</body>
+</html>
