@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajax form</title>
+</head>
+<style>
+    #result {
+        display: none;
+    }
+    .error {
+        border: 1px solid red;
+    }
+    #spinner {
+        display: none;
+    }
+</style>
+<body>
+<div id="measurements">
+    <h3>
+        <p>Enter the measurements you need to get the volume: </p>
+    </h3>
+    <form id="measurement-form" action="processMeasurements.php" method="post">
+        Length: <label for="length"></label><input id="length" type="text" name="length">
+        <br/><br/>
+        Width: <label for="width"></label><input id="width" name="width" type="text">
+        <br/><br/>
+        Height: <label for="height"></label><input id="height" type="text" name="height">
+        <br/><br/>
+        <input id="submit" type="submit" value="Submit">
+    </form>
+</div>
+
+<div id="spinner">
+    <img src="Spinner-1s-200px.gif" width="50" height="50" alt="spinner">
+</div>
+
+<div id="result">
+    <p>The total volume is : <span id="volume"></span></p>
+</div>
+
+<script type="text/javascript">
+    let button = document.getElementById('submit');
+    let originalButton = button.value;
+    let resultDiv = document.getElementById('result');
+    let volume = document.getElementById('volume');
+    let inputs = document.getElementsByTagName('input');
+
+    postResult = (value) => {
+        volume.innerHTML = value;
+        resultDiv.style.display = 'block';
+    };
+    clearResult = () => {
+        volume.innerHTML = '';
+        resultDiv.style.display = 'none';
+    };
+    clearErrors = () => {
+        for (let i=0; i<inputs.length; i++) {
+            inputs[i].classList.remove('error');
+        }
+    };
+    displayErrors = (errors) => {
+        for (let i=0; i<inputs.length; i++) {
+            let input = inputs[i];
+            if (errors.indexOf(input.name) >= 0) {
+                input.classList.add('error');
+            }
+        }
+    };
+    showSpinner = () => {
+        let spinner = document.getElementById('spinner');
+        spinner.style.display = 'block';
+    };
+    hideSpinner = () => {
+        let spinner = document.getElementById('spinner');
+        spinner.style.display = 'none';
+    };
+    disableSubmitButton = () => {
+        button.disabled = true;
+        button.value = 'Loading';
+    };
+    enableSubmitButton = () => {
+        button.disabled = false;
+        button.value = originalButton;
+    };
+
+    processMeasurements = () => {
+        clearResult();
+        clearErrors();
+        showSpinner();
+        disableSubmitButton();
+
+        let form = document.getElementById('measurement-form');
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'processMeasurements.php', true);
+        let formData = new FormData(form);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                hideSpinner();
+                enableSubmitButton();
+
+                let json = JSON.parse(xhr.responseText);
+                if (json.hasOwnProperty('errors') && json.errors.length > 0) {
+                    displayErrors(json.errors);
+                } else {
+                    postResult(json.volume)
+                }
+            }
+        };
+        xhr.send(formData);
+    };
+
+    button.addEventListener('click', event => {
+        event.preventDefault();
+        processMeasurements();
+    });
+</script>
+</body>
+</html>
